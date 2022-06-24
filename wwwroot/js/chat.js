@@ -22,6 +22,11 @@ if(setChannel){
     selectedChannel = setChannel;    
 }
 
+if(selectedChannel == "public"){
+    secretButton.disabled = true;
+    secretIn.disabled = true;
+}
+
 channelButton.value = 'Set Channel ('+selectedChannel+')';
 let connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
 
@@ -113,6 +118,14 @@ channelButton.addEventListener("click", event => {
     selectedChannel = channelIn.value;
     msgs.innerHTML = "";
     channelIn.value = "";
+    if(selectedChannel == "public"){
+        secretButton.disabled = true;
+        secretIn.disabled = true;
+    }
+    else{
+        secretButton.disabled = false;
+        secretIn.disabled = false;
+    }
     channelButton.value = 'Set Channel ('+selectedChannel+')';
     connection.invoke("GetChannelMessages", selectedChannel);
 });
