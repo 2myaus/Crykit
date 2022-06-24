@@ -1,0 +1,47 @@
+﻿@page
+<div style="
+display:flex;
+flex-flow:column;height:calc(100% - 40px);
+padding:20px;
+font-family:monospace;
+color:#ffffff;
+background-color:#220022;">
+    <ul id="messagesList" style="flex-grow:1;flex-shrink:1;overflow-y:scroll;margin:0px;border:2px Solid White;"></ul>
+    <div style="flex-grow:0;flex-shrink:0;height:auto;display:flex;width:100%;">
+        <div style="flex-grow:0;flex-shrink:0;height:auto;width:auto;">
+            <div>&nbsp</div>
+            <div>
+                <div>Username</div>
+                <div><input type="text" id="userInput" /></div>
+            </div>
+            <div>&nbsp</div>
+            <div>
+                <a href="/Info" style="position:relative;top:calc(50% - 8px);">Info and usage</a>
+            </div>
+        </div>
+        <div style="flex-grow:1;flex-shrink:1;text-align:center;">
+            <div>&nbsp</div>
+            <div>Message</div>
+            <div><input type="text" id="messageInput" style="width:90%;"/></div>
+            <div>&nbsp</div>
+            <input type="button" id="sendButton" value="Send Message" />
+        </div>
+        <div style="flex-grow:0;flex-shrink:0;height:auto;width:auto;">
+            <div>
+                <div>&nbsp</div>
+                <div><input type="Button" id="secretButton" value="Set Secret"/></div>
+                <div>
+                    <input type="text" id="secretInput" />
+                </div>
+                <div>&nbsp</div>
+                <div id="channelText"><input type="Button" id="channelButton" value="Set Channel"/></div>
+                <div>
+                    <input type="text" id="channelInput" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
+<script src="~/js/sjcl.js"></script>
+<script src="~/js/chat.js"></script>
