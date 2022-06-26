@@ -28,7 +28,11 @@ namespace Crykit.Hubs
                     if(!ChatHub.msgLog.ContainsKey(channel)){
                         ChatHub.msgLog.Add(channel, new List<Message>());
                     }
-                    ChatHub.msgLog[channel].Add(new Message(user, message, channel));
+                    List<Message> msgList = ChatHub.msgLog[channel];
+                    msgList.Add(new Message(user, message, channel));
+                    if(msgList.Count > 100){
+                        msgList.RemoveRange(0, msgList.Count - 100);
+                    }
                     await Clients.All.SendAsync("ReceiveMessage", user, message, channel);
                     string targetlog = "./logs/" + channel + ".txt";
                     if(!File.Exists(targetlog)){
