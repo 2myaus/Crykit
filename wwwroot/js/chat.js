@@ -18,8 +18,19 @@ let selectedChannel = "public";
 let params = (new URL(document.location.href)).searchParams;
 let setChannel = params.get("channel");
 
+let illegalchars = ['#','<','$','+','%','>','!','`','&','*','\'','|','{','?','"','=','}','/',':','\\',' ','@','.','-','_'];
+
 if(setChannel){
-    selectedChannel = setChannel;    
+    setChannel = setChannel.toLowerCase();
+    let flag = setChannel.length > 25;
+    illegalchars.forEach((char) => {
+        if(setChannel.includes(char)){
+            flag = true;
+        }
+    });
+    if(!flag){
+        selectedChannel = setChannel;
+    }
 }
 
 if(selectedChannel == "public"){
@@ -115,20 +126,28 @@ secretIn.addEventListener("keyup", event => {
 });
 
 channelButton.addEventListener("click", event => {
-    selectedChannel = channelIn.value;
-    msgs.innerHTML = "";
-    channelIn.value = "";
-    if(selectedChannel == "public"){
-        secretButton.disabled = true;
-        secretIn.disabled = true;
+    selectedChannel = channelIn.value.toLowerCase();
+    let flag = selectedChannel.length > 25;
+    illegalchars.forEach((char) => {
+        if(selectedChannel.includes(char)){
+            flag = true;
+        }
+    });
+    if(!flag){
+        msgs.innerHTML = "";
+        channelIn.value = "";
+        if(selectedChannel == "public"){
+            secretButton.disabled = true;
+            secretIn.disabled = true;
+        }
+        else{
+            secretButton.disabled = false;
+            secretIn.disabled = false;
+        }
+        channelButton.value = 'Set Channel ('+selectedChannel+')';
+        connection.invoke("SubscribeTo", selectedChannel);
+        connection.invoke("GetChannelMessages", selectedChannel);
     }
-    else{
-        secretButton.disabled = false;
-        secretIn.disabled = false;
-    }
-    channelButton.value = 'Set Channel ('+selectedChannel+')';
-    connection.invoke("SubscribeTo", selectedChannel);
-    connection.invoke("GetChannelMessages", selectedChannel);
 });
 
 channelIn.addEventListener("keyup", event => {
