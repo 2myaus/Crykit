@@ -127,6 +127,7 @@ channelButton.addEventListener("click", event => {
         secretIn.disabled = false;
     }
     channelButton.value = 'Set Channel ('+selectedChannel+')';
+    connection.invoke("SubscribeTo", selectedChannel);
     connection.invoke("GetChannelMessages", selectedChannel);
 });
 

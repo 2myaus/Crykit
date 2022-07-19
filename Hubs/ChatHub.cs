@@ -9,14 +9,36 @@ namespace Crykit.Hubs
             Directory.CreateDirectory("./logs");
         }
 
-        private static Dictionary<string, List<Message>> msgLog = new Dictionary<string, List<Message>>();
+        private static Dictionary<string, Channel> channels = new();
+
+        private static Dictionary<IClientProxy, Channel> ClientSubscriptions = new();
 
         public override async Task OnConnectedAsync(){
             Console.WriteLine("Client Added: " + Clients.Caller);
+            await SubscribeTo("public");
             await base.OnConnectedAsync();
         }
         public override async Task OnDisconnectedAsync(Exception? exception){
-            await base.OnConnectedAsync();
+            IClientProxy caller = Clients.Caller;
+            if(ClientSubscriptions.TryGetValue(caller, out Channel? ch)){
+                ClientSubscriptions.Remove(caller);
+                ch.RmSubscriber(caller);
+            }
+            await base.OnDisconnectedAsync(exception);
+        }
+        public async Task SubscribeTo(string channel){
+            if(!ChatHub.channels.ContainsKey(channel)){
+                ChatHub.channels.Add(channel, new());
+            }
+            IClientProxy caller = Clients.Caller;
+            Channel ch = ChatHub.channels[channel];
+            ch.AddSubscriber(caller);
+            if(ClientSubscriptions.ContainsKey(caller)){
+                ClientSubscriptions[caller] = ch;
+            }
+            else{
+                ClientSubscriptions.Add(caller, ch);
+            }
         }
         public async Task SendMessage(string user, string message, string channel)
         {
@@ -25,15 +47,15 @@ namespace Crykit.Hubs
                     user = user.Replace("\n", "\\n");
                     message = message.Replace("\n", "\\n");
                     channel = channel.Replace("\n", "\\n");
-                    if(!ChatHub.msgLog.ContainsKey(channel)){
-                        ChatHub.msgLog.Add(channel, new List<Message>());
+                    if(!ChatHub.channels.ContainsKey(channel)){
+                        ChatHub.channels.Add(channel, new());
                     }
-                    List<Message> msgList = ChatHub.msgLog[channel];
-                    msgList.Add(new Message(user, message, channel));
-                    if(msgList.Count > 100){
-                        msgList.RemoveRange(0, msgList.Count - 100);
+                    Channel channelObj = ChatHub.channels[channel];
+                    channelObj.addMsg(new(user, message, channel));
+
+                    foreach(IClientProxy client in channelObj.subscribers){
+                        await client.SendAsync("ReceiveMessage", user, message, channel);
                     }
-                    await Clients.All.SendAsync("ReceiveMessage", user, message, channel);
                     string targetlog = "./logs/" + channel + ".txt";
                     if(!File.Exists(targetlog)){
                         await File.WriteAllTextAsync(targetlog, DateTime.Now.ToString() + "\n" + user + "\n" + message + "\n");
@@ -50,9 +72,8 @@ namespace Crykit.Hubs
         }
 
         public async Task GetChannelMessages(string channel){
-            Console.WriteLine("Syncing "+ChatHub.msgLog.Count.ToString()+" Messages");
-            if(ChatHub.msgLog.ContainsKey(channel)){
-                foreach(Message message in ChatHub.msgLog[channel]){
+            if(ChatHub.channels.ContainsKey(channel)){
+                foreach(Message message in ChatHub.channels[channel].msgLog){
                     await Clients.Caller.SendAsync("ReceiveMessage", message.user, message.content, message.channel);
                 }
             }
