@@ -19,6 +19,11 @@ let params = (new URL(document.location.href)).searchParams;
 let setChannel = params.get("channel");
 
 let illegalchars = ['#','<','$','+','%','>','!','`','&','*','\'','|','{','?','"','=','}','/',':','\\',' ','@','.','-','_'];
+let validImgExts = ['jpeg', 'jpg', 'gif', 'png', 'apng', 'svg', 'bmp'];
+let validVideoExts = ['mp4', 'webm'];
+let validAudioExts = ['mp3', 'wav', 'ogg'];
+
+let ipwarn = false;
 
 if(setChannel){
     setChannel = setChannel.toLowerCase();
@@ -57,6 +62,80 @@ connection.on("ReceiveMessage", function (user, message, channel) {
                 let usertext = sjcl.decrypt(useSecret, user);
                 let content = sjcl.decrypt(useSecret, message);
                 li.textContent = `${usertext} : ${content}`;
+                if(isValidHttpUrl(content)){
+                    let isimg = false;
+                    (validImgExts).forEach(ext => {
+                        if(content.endsWith(ext)){
+                            isimg = true;
+                        }
+                    });
+                    if(isimg){
+                        li.appendChild(document.createElement("br"));
+                        let loadButton = document.createElement("input");
+                        loadButton.type = "button";
+                        loadButton.value = "Load Image";
+                        loadButton.addEventListener("click", () => {
+                            if(getIpWarn()){
+                                loadButton.remove();
+                                let img = new Image();
+                                img.src = content;
+                                img.style.maxHeight = "150px";
+                                li.appendChild(img);
+                            }
+                        });
+                        li.appendChild(loadButton);
+                    }
+                    else{
+                        let isvid = false;
+                        (validVideoExts).forEach((ext) => {
+                            if(content.endsWith(ext)){
+                                isvid = true;
+                            }
+                        });
+                        if(isvid){
+                            li.appendChild(document.createElement("br"));
+                            let loadButton = document.createElement("input");
+                            loadButton.type = "button";
+                            loadButton.value = "Load Video";
+                            loadButton.addEventListener("click", () => {
+                                if(getIpWarn()){
+                                    loadButton.remove();
+                                    let vid = document.createElement("video");
+                                    vid.controls = true;
+                                    vid.src = content;
+                                    vid.style.maxHeight = "150px";
+                                    li.appendChild(vid);
+                                }
+                            });
+                            li.appendChild(loadButton);
+                        }
+                        else{
+                            let isaudio = false;
+                            (validAudioExts).forEach((ext) => {
+                                if(content.endsWith(ext)){
+                                    isaudio = true;
+                                }
+                            });
+                            if(isaudio){
+                                li.appendChild(document.createElement("br"));
+                                let loadButton = document.createElement("input");
+                                loadButton.type = "button";
+                                loadButton.value = "Load Audio";
+                                loadButton.addEventListener("click", () => {
+                                    if(getIpWarn()){
+                                        loadButton.remove();
+                                        let aud = document.createElement("audio");
+                                        aud.controls = true;
+                                        aud.src = content;
+                                        aud.style.maxHeight = "150px";
+                                        li.appendChild(aud);
+                                    }
+                                });
+                                li.appendChild(loadButton);
+                            }
+                        }
+                    }
+                }
             }
             else{
                 li.textContent = `Decrypt Error`;
@@ -158,4 +237,23 @@ channelIn.addEventListener("keyup", event => {
 
 connection.Closed += () => {
     location.reload();
+}
+
+function isValidHttpUrl(string) { //Credit: https://stackoverflow.com/questions/5717093/check-if-a-javascript-string-is-a-url
+    let url;
+    
+    try {
+        url = new URL(string);
+    } catch (_) {
+        return false;  
+    }
+  
+    return url.protocol === "http:" || url.protocol === "https:";
+}
+
+function getIpWarn(){
+    if(!ipwarn){
+        ipwarn = confirm("Warning: Loading media can expose your IP address! Only open images in a private channel. Would you like to continue? (You won't be asked again)");
+    }
+    return ipwarn;
 }
