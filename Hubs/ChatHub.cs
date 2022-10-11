@@ -69,12 +69,16 @@ namespace Crykit.Hubs
                 foreach(IClientProxy client in channelObj.subscribers){
                     await client.SendAsync("ReceiveMessage", user, message, channel);
                 }
-                string targetlog = "./logs/" + channel + ".txt";
-                if(!File.Exists(targetlog)){
-                    await File.WriteAllTextAsync(targetlog, DateTime.Now.ToString() + "\n" + user + "\n" + message + "\n");
-                }
-                else{
-                    await File.AppendAllTextAsync(targetlog, DateTime.Now.ToString() + "\n" + user + "\n" + message + "\n");
+                string channelLower = channel.ToLower();
+                Console.WriteLine(channelLower);
+                if(!channelLower.StartsWith("nl~") && !channelLower.ToLower().StartsWith("nolog~")) {
+                    string targetlog = "./logs/" + channel + ".txt";
+                    if(!File.Exists(targetlog)){
+                        await File.WriteAllTextAsync(targetlog, DateTime.Now.ToString() + "\n" + user + "\n" + message + "\n");
+                    }
+                    else{
+                        await File.AppendAllTextAsync(targetlog, DateTime.Now.ToString() + "\n" + user + "\n" + message + "\n");
+                    }
                 }
             }
             catch(Exception e){
